@@ -45,6 +45,8 @@ public:
 signals:
     void emitMidiCall(const QString &value);
     void emitPlaySound(const Sound sound);
+    void emitUpVolume(const int value);
+    void emitLowerVolume(const int value);
     void finished();
 
 protected:

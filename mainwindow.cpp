@@ -11,7 +11,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QFileDialog>
-#include <QMediaPlayer>
+
 
 #include<iostream>
 #include<fstream>
@@ -46,6 +46,10 @@ MainWindow::MainWindow(QWidget *parent)
     umidi = std::make_shared<libremidi::midi_in>();
     auto ptr = umidi.get();//umidi = new libremidi::midi_in;
     //ptr = new libremidi::midi_in;
+
+    ui->volumeSlider->setValue(30);
+    player = new QMediaPlayer;
+    player->setVolume(30);
 
     if( chooseMidiPort(ptr))
     {
@@ -94,6 +98,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->saveProfile, &QPushButton::pressed, this, &MainWindow::saveProfiles);
 
     connect(ui->profileComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::comboBoxSelection);
+
+   // connect(player, &QMediaPlayer::volumeChanged, this, &MainWindow::setVolume);
+
+    connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::setVolume);
+
+    connect(midiThread, &MidiThread::emitLowerVolume, this, &MainWindow::changeVolume);
+    connect(midiThread, &MidiThread::emitUpVolume, this, &MainWindow::changeVolume);
 
     workerThread.start();
 
@@ -147,8 +158,9 @@ MainWindow::~MainWindow()
             workerThread.terminate();
             workerThread.deleteLater();
         }
+        delete player;
         delete tableModel;
-       // delete midiThread;
+        //delete midiThread;
         delete ui;
 }
 
@@ -193,9 +205,21 @@ void MainWindow::addSoundButton()
     //midi.append(ui->byte2Box->text());
 }
 
+void MainWindow::changeVolume(int volume)
+{
+ //   std::cout << "Setting volume" << std::endl;
+    ui->volumeSlider->setValue(ui->volumeSlider->value()+volume);
+    //emit ui->volumeSlider->valueChanged(ui->volumeSlider->value());
+}
+
+void MainWindow::setVolume(int volume)
+{
+    player->setVolume(volume);
+}
+
 void MainWindow::bla(const QString &name)
 {
-    std::cout << "Name: " << name.toStdString() << std::endl;
+  //  std::cout << "Name: " << name.toStdString() << std::endl;
     QString byte0 = name.split(":").at(0);
     QString byte1 = name.split(":").at(1);
     ui->byte1Box->setText(byte0);
@@ -205,11 +229,12 @@ void MainWindow::bla(const QString &name)
 void MainWindow::PlaySound(const Sound sound)
 {
     std::cout << "Playing" << std::endl;
-    QMediaPlayer *player = new QMediaPlayer;
+    //QMediaPlayer *player = new QMediaPlayer;
     player->setMedia(QUrl::fromLocalFile(sound.FileName()));
-    player->setVolume(30);
+   // player->setVolume(ui->volumeSlider->value());
     std::cout << "Calling play" << std::endl;
     player->play();
+
 }
 
 bool MainWindow::chooseMidiPort(libremidi::midi_in *libremidi)

@@ -34,6 +34,7 @@ SOFTWARE.*/
 
 #include <QDomDocument>
 #include <QDomElement>
+#include <QMediaPlayer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -58,6 +59,8 @@ public slots:
     void createNewProfile();
     void comboBoxSelection(int index);
     void saveProfile(Profile profile);
+    void setVolume(int volume);
+    void changeVolume(int volume); // this does not set the volume, but adjust the QSlider in the ui
 
 private slots:
     void on_actionQuit_triggered();
@@ -83,5 +86,6 @@ private:
     std::shared_ptr<libremidi::midi_in> umidi;
     QVector<Profile> m_profileList; // a list of stored profiles, this is loaded upon program startup
     Profile currentProfile; // the last selected profile
+    QMediaPlayer *player;
 };
 #endif // MAINWINDOW_H
